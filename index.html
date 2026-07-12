@@ -3,20 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FACIAL ANALYSIS v1.1</title>
+    <title>FACIAL ANALYSIS v1.2</title>
     
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.8/wasm/vision_bundle.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.js"></script>
     
     <style>
         :root {
-            --bg-color: #0a0a0c;
-            --panel-color: #121216;
+            --bg-color: #060608;
+            --panel-color: #0b0b0f;
+            --border-color: #1a1a24;
             --accent-color: #00f0ff;
-            --accent-glow: rgba(0, 240, 255, 0.4);
-            --text-color: #e2e8f0;
+            --accent-glow: rgba(0, 240, 255, 0.35);
+            --text-color: #f1f5f9;
             --text-muted: #64748b;
             --success: #10b981;
-            --error: #ef4444;
+            --error: #f43f5e;
         }
 
         * {
@@ -40,71 +41,72 @@
             width: 100%;
             max-width: 450px;
             background: var(--panel-color);
-            border: 1px solid #22252e;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.7);
             text-align: center;
         }
 
         h1 {
-            font-size: 1.4rem;
+            font-size: 1.5rem;
             color: var(--accent-color);
-            text-shadow: 0 0 10px var(--accent-glow);
-            margin-bottom: 5px;
-            letter-spacing: 2px;
+            text-shadow: 0 0 12px var(--accent-glow);
+            margin-bottom: 4px;
+            letter-spacing: 3px;
         }
 
         .subtitle {
             font-size: 0.65rem;
             color: var(--text-muted);
-            margin-bottom: 25px;
+            margin-bottom: 30px;
             text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
-        /* Экран загрузки и пульсирующие точки */
+        /* Индикатор загрузки с пульсацией */
         #loading-screen {
-            padding: 40px 20px;
+            padding: 50px 10px;
         }
 
         .spinner-dots {
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 8px;
-            margin-top: 20px;
+            gap: 10px;
+            margin-top: 25px;
         }
 
         .dot {
-            width: 10px;
-            height: 10px;
+            width: 12px;
+            height: 12px;
             background-color: var(--accent-color);
             border-radius: 50%;
-            box-shadow: 0 0 8px var(--accent-color);
-            animation: pulse 1.4s infinite ease-in-out both;
+            box-shadow: 0 0 10px var(--accent-color);
+            animation: pulse-dot 1.5s infinite ease-in-out both;
         }
 
         .dot:nth-child(1) { animation-delay: -0.32s; }
         .dot:nth-child(2) { animation-delay: -0.16s; }
 
-        @keyframes pulse {
-            0%, 80%, 100% { opacity: 0.2; transform: scale(0.8); }
-            40% { opacity: 1; transform: scale(1.2); }
+        @keyframes pulse-dot {
+            0%, 80%, 100% { opacity: 0.15; transform: scale(0.75); }
+            40% { opacity: 1; transform: scale(1.3); }
         }
 
         #main-ui {
             display: none;
         }
 
-        .preview-container {
+        .preview-box {
             position: relative;
             width: 100%;
             aspect-ratio: 3/4;
-            background: #000;
-            border-radius: 8px;
+            background: #020203;
+            border-radius: 12px;
             overflow: hidden;
-            border: 1px dashed #334155;
-            margin-bottom: 20px;
+            border: 1px solid #1e1e2f;
+            margin-bottom: 24px;
         }
 
         #canvas-output {
@@ -113,27 +115,27 @@
             left: 0;
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            object-fit: contain;
         }
 
-        .btn {
+        .btn-action {
             background: transparent;
             color: var(--accent-color);
             border: 1px solid var(--accent-color);
-            padding: 12px 20px;
-            font-size: 0.9rem;
+            padding: 14px 24px;
+            font-size: 0.85rem;
             font-weight: bold;
-            border-radius: 6px;
+            border-radius: 8px;
             cursor: pointer;
             width: 100%;
-            transition: all 0.3s ease;
-            box-shadow: 0 0 5px rgba(0, 240, 255, 0.1);
+            transition: all 0.25s ease;
+            letter-spacing: 1px;
         }
 
-        .btn:active {
+        .btn-action:active {
             background: var(--accent-color);
             color: #000;
-            box-shadow: 0 0 15px var(--accent-color);
+            box-shadow: 0 0 20px var(--accent-color);
         }
 
         #file-input {
@@ -141,92 +143,99 @@
         }
 
         #status-msg {
-            font-size: 0.8rem;
-            margin-top: 10px;
+            font-size: 0.75rem;
+            margin-top: 12px;
             color: var(--text-muted);
+            line-height: 1.4;
         }
 
-        /* Панель результатов */
+        /* Dashboard Системы Оценок */
         #dashboard {
             display: none;
-            margin-top: 25px;
-            border-top: 1px solid #22252e;
-            padding-top: 20px;
+            margin-top: 30px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 24px;
             text-align: left;
         }
 
-        .score-box {
+        .score-wrap {
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
         }
 
-        .rating-val {
-            font-size: 3rem;
-            font-weight: bold;
+        .rating-num {
+            font-size: 3.5rem;
+            font-weight: 900;
             color: var(--accent-color);
+            text-shadow: 0 0 15px rgba(0, 240, 255, 0.2);
         }
 
-        .rating-tier {
-            font-size: 0.9rem;
+        .rating-tier-label {
+            font-size: 0.85rem;
             color: var(--text-muted);
             text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-top: 4px;
         }
 
-        .metric-item {
-            background: #181820;
-            padding: 12px;
-            border-radius: 6px;
-            margin-bottom: 10px;
-            border-left: 3px solid var(--text-muted);
+        .metric-card {
+            background: #0e0e14;
+            border: 1px solid #15151f;
+            padding: 14px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            border-left: 4px solid var(--text-muted);
         }
 
-        .metric-item.good { border-left-color: var(--success); }
-        .metric-item.bad { border-left-color: var(--error); }
+        .metric-card.status-good { border-left-color: var(--success); }
+        .metric-card.status-warn { border-left-color: #f59e0b; }
+        .metric-card.status-bad { border-left-color: var(--error); }
 
-        .metric-head {
+        .metric-meta {
             display: flex;
             justify-content: space-between;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             font-weight: bold;
-            margin-bottom: 4px;
+            margin-bottom: 6px;
         }
 
-        .metric-desc {
+        .metric-info {
             font-size: 0.75rem;
             color: var(--text-muted);
-            line-height: 1.3;
+            line-height: 1.4;
         }
 
-        .roadmap-box {
-            margin-top: 20px;
-            background: rgba(0, 240, 255, 0.03);
-            border: 1px solid rgba(0, 240, 255, 0.1);
-            padding: 15px;
-            border-radius: 6px;
+        .roadmap-container {
+            margin-top: 25px;
+            background: rgba(0, 240, 255, 0.02);
+            border: 1px solid rgba(0, 240, 255, 0.08);
+            padding: 16px;
+            border-radius: 8px;
         }
 
-        .roadmap-title {
-            font-size: 0.9rem;
+        .roadmap-header {
+            font-size: 0.85rem;
             color: var(--accent-color);
-            margin-bottom: 10px;
+            margin-bottom: 12px;
             font-weight: bold;
+            letter-spacing: 1px;
         }
 
-        .roadmap-text {
+        .roadmap-details {
             font-size: 0.75rem;
             color: var(--text-color);
-            line-height: 1.4;
+            line-height: 1.5;
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>FACIAL ANALYSIS v1.1</h1>
-    <div class="subtitle">Mobile Client-Side Looksmaxing Engine</div>
+    <h1>FACIAL ANALYSIS v1.2</h1>
+    <div class="subtitle">Client-Side Engine / Mobile Edition</div>
 
     <div id="loading-screen">
-        <div id="loading-text" style="font-size: 0.85rem;">Инициализация ИИ модулей...</div>
+        <div id="loading-text" style="font-size: 0.8rem; line-height: 1.4;">Инициализация ядра ИИ...</div>
         <div class="spinner-dots">
             <div class="dot"></div>
             <div class="dot"></div>
@@ -235,35 +244,33 @@
     </div>
 
     <div id="main-ui">
-        <div class="preview-container">
+        <div class="preview-box">
             <canvas id="canvas-output"></canvas>
-            <div id="placeholder-text" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); color:var(--text-muted); font-size:0.8rem; pointer-events:none;">Фото не загружено</div>
+            <div id="placeholder" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); color:var(--text-muted); font-size:0.75rem; pointer-events:none; width:80%;">Ожидание структуры лица (ФАС)</div>
         </div>
 
-        <label for="file-input" class="btn">ЗАГРУЗИТЬ СНИМОК ФАС</label>
+        <label for="file-input" class="btn-action">ЗАГРУЗИТЬ СНИМОК</label>
         <input type="file" id="file-input" accept="image/*">
         
-        <div id="status-msg">Система готова. Используйте селфи при прямом свете.</div>
+        <div id="status-msg">Для идеального расчета смотрите прямо, лицо без наклонов, свет фронтальный.</div>
 
         <div id="dashboard">
-            <div class="score-box">
-                <div class="rating-val" id="res-psl">0.0</div>
-                <div class="rating-tier" id="res-tier">Оценка</div>
+            <div class="score-wrap">
+                <div class="rating-num" id="psl-score-output">0.0</div>
+                <div class="rating-tier-label" id="psl-tier-output">Анализ</div>
             </div>
 
-            <div id="metrics-list">
-                </div>
+            <div id="metrics-container"></div>
 
-            <div class="roadmap-box">
-                <div class="roadmap-title">LOOKSMAXING ROADMAP:</div>
-                <div class="roadmap-text" id="res-roadmap">Загрузите снимок для анализа.</div>
+            <div class="roadmap-container">
+                <div class="roadmap-header">РЕКОМЕНДАЦИИ ПО СТРУКТУРЕ ЛИЦА:</div>
+                <div class="roadmap-details" id="roadmap-output">Загрузите портретный снимок.</div>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    let faceLandmarker;
     const loadingScreen = document.getElementById('loading-screen');
     const loadingText = document.getElementById('loading-text');
     const mainUi = document.getElementById('main-ui');
@@ -271,200 +278,178 @@
     const canvas = document.getElementById('canvas-output');
     const ctx = canvas.getContext('2d');
     const statusMsg = document.getElementById('status-msg');
-    const placeholderText = document.getElementById('placeholder-text');
+    const placeholder = document.getElementById('placeholder');
 
-    // Безопасная инициализация ИИ MediaPipe
-    async function initMediaPipe() {
+    // Безопасная мобильная загрузка архитектуры нейросети
+    async function startEngine() {
         try {
-            loadingText.innerText = "Скачивание файлов конфигурации...";
-            const vision = await FilesetResolver.forVisionTasks(
-                "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.8/wasm"
-            );
+            // Зеркало бесплатных весов моделей на открытом CDN
+            const MODEL_URL = 'https://justadudewhohacks.github.io/face-api.js/models/';
             
-            loadingText.innerText = "Сборка детектора лица...";
-            faceLandmarker = await FaceLandmarker.createFromOptions(vision, {
-                baseOptions: {
-                    modelAssetPath: `https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task`,
-                    delegate: "GPU"
-                },
-                outputFaceBlendshapes: false,
-                runningMode: "IMAGE",
-                numFaces: 1
-            });
+            loadingText.innerText = "Загрузка архитектуры контуров...";
+            await faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL);
+            
+            loadingText.innerText = "Калибровка 68-точечной матрицы...";
+            await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
 
             loadingScreen.style.display = 'none';
             mainUi.style.display = 'block';
-        } catch (error) {
-            console.error(error);
-            loadingText.innerHTML = `<span style="color:var(--error)">Ошибка сети. Проверьте интернет или обновите страницу.</span>`;
+        } catch (err) {
+            console.error(err);
+            loadingText.innerHTML = `<span style="color:var(--error)">Сбой загрузки ядра. Проверьте сеть или смените браузер.</span>`;
         }
     }
 
-    window.addEventListener('load', initMediaPipe);
+    window.addEventListener('load', startEngine);
 
-    // Обработка загруженного фото
-    fileInput.addEventListener('change', (e) => {
+    fileInput.addEventListener('change', async (e) => {
         const file = e.target.files[0];
         if (!file) return;
 
-        const img = new Image();
-        img.onload = function() {
-            // Настройка размеров холста
-            canvas.width = img.naturalWidth;
-            canvas.height = img.naturalHeight;
-            ctx.drawImage(img, 0, 0);
-            placeholderText.style.display = 'none';
-            
-            statusMsg.innerText = "Сканирование структуры геометрии...";
-            
-            setTimeout(() => {
-                analyzeFace(img);
-            }, 100);
-        };
-        img.src = URL.createObjectURL(file);
+        const img = await faceapi.bufferToImage(file);
+        
+        // Масштабируем холст под загруженное мобильное фото
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        ctx.drawImage(img, 0, 0);
+        placeholder.style.display = 'none';
+        
+        statusMsg.innerText = "Вычисление тригонометрических векторов...";
+        
+        setTimeout(async () => {
+            await runAnalysis(img);
+        }, 150);
     });
 
-    // Функция анализа геометрии лица
-    function analyzeFace(imageElement) {
-        if (!faceLandmarker) return;
-
-        const result = faceLandmarker.detect(imageElement);
+    async function runAnalysis(imgElement) {
+        // Поиск лица и его анатомических точек
+        const detection = await faceapi.detectSingleFace(imgElement).withFaceLandmarks();
         
-        if (!result || result.faceLandmarks.length === 0) {
-            statusMsg.innerHTML = `<span style="color:var(--error)">Лицо не распознано. Снимите очки и обеспечьте свет.</span>`;
+        if (!detection) {
+            statusMsg.innerHTML = `<span style="color:var(--error)">Лицо не найдено. Убедитесь, что лицо полностью в кадре и нет жестких теней.</span>`;
             return;
         }
 
-        statusMsg.innerText = "Анализ завершен успешно.";
-        const landmarks = result.faceLandmarks[0];
+        statusMsg.innerText = "Сканирование завершено. Метрики рассчитаны.";
+        const landmarks = detection.landmarks.getPositions();
 
-        // Ключевые точки индексов MediaPipe для вычислений
-        const leftInnerEye = landmarks[133];
-        const leftOuterEye = landmarks[33];
-        const rightInnerEye = landmarks[362];
-        const rightOuterEye = landmarks[263];
+        // Расчет базовых ориентиров по 68-точечной схеме
+        const leftInnerEye = landmarks[39];
+        const leftOuterEye = landmarks[36];
+        const rightInnerEye = landmarks[42];
+        const rightOuterEye = landmarks[45];
 
-        const chinnasionTop = landmarks[10]; // Верх лба
-        const chinMentonBottom = landmarks[152]; // Низ подбородка
-        const leftZygomatic = landmarks[234]; // Левая скула
-        const rightZygomatic = landmarks[454]; // Правая скула
+        const leftEyebrowInner = landmarks[21];
+        const leftPupilY = (landmarks[37].y + landmarks[41].y) / 2;
 
-        const subnasale = landmarks[2]; // Под носом
+        const nasionTop = landmarks[27]; 
+        const chinBottom = landmarks[8];  
+        const leftJawBone = landmarks[2];  
+        const rightJawBone = landmarks[14]; 
+        const noseBase = landmarks[33];   
 
         // 1. Расчет Canthal Tilt (Левый глаз)
-        const dX = leftOuterEye.x - leftInnerEye.x;
-        const dY = leftOuterEye.y - leftInnerEye.y;
-        let canthalTilt = (Math.atan2(-dY, dX) * (180 / Math.PI)).toFixed(1);
-        canthalTilt = parseFloat(canthalTilt);
+        const dX_L = leftOuterEye.x - leftInnerEye.x;
+        const dY_L = leftOuterEye.y - leftInnerEye.y;
+        const canthalLeft = parseFloat((-Math.atan2(dY_L, dX_L) * (180 / Math.PI)).toFixed(1));
 
-        // 2. Расчет Facial Index (Высота лица к ширине скул)
-        const faceHeight = Math.hypot(chinMentonBottom.x - chinnasionTop.x, chinMentonBottom.y - chinnasionTop.y);
-        const faceWidth = Math.hypot(rightZygomatic.x - leftZygomatic.x, rightZygomatic.y - leftZygomatic.y);
+        // 2. Расчет Canthal Tilt (Правый глаз)
+        const dX_R = rightOuterEye.x - rightInnerEye.x;
+        const dY_R = rightOuterEye.y - rightInnerEye.y;
+        const canthalRight = parseFloat((Math.atan2(dY_R, dX_R) * (180 / Math.PI)).toFixed(1));
+        
+        const avgCanthal = parseFloat(((canthalLeft + canthalRight) / 2).toFixed(1));
+
+        // 3. Расчет Facial Index (Высота лица к ширине скул/челюсти)
+        const faceHeight = Math.hypot(chinBottom.x - nasionTop.x, chinBottom.y - nasionTop.y);
+        const faceWidth = Math.hypot(rightJawBone.x - leftJawBone.x, rightJawBone.y - leftJawBone.y);
         const facialIndex = parseFloat((faceHeight / faceWidth).toFixed(2));
 
-        // 3. Расчет Lower Third Ratio
-        const totalHeight = Math.hypot(chinMentonBottom.x - chinnasionTop.x, chinMentonBottom.y - chinnasionTop.y);
-        const lowerThirdHeight = Math.hypot(chinMentonBottom.x - subnasale.x, chinMentonBottom.y - subnasale.y);
-        const lowerThirdRatio = parseFloat((lowerThirdHeight / totalHeight).toFixed(2));
+        // 4. Расчет Lower Third Ratio (Доля нижней трети)
+        const lowerThirdHeight = Math.hypot(chinBottom.x - noseBase.x, chinBottom.y - noseBase.y);
+        const lowerThirdRatio = parseFloat((lowerThirdHeight / faceHeight).toFixed(2));
 
-        // Отрисовка направляющих линий на Canvas
-        ctx.lineWidth = Math.max(2, canvas.width / 200);
+        // 5. Расчет Eye-to-Brow Distance (Расстояние от брови до зрачка в пикселях)
+        const eyeBrowDist = parseFloat(Math.abs(leftPupilY - leftEyebrowInner.y).toFixed(1));
+
+        // Визуализация линий геометрии на холсте
+        ctx.lineWidth = Math.max(3, canvas.width / 150);
         
-        // Линия глаз (Кантал тилт)
-        ctx.strokeStyle = canthalTilt >= 0 ? '#10b981' : '#ef4444';
+        // Линии глаз
+        ctx.strokeStyle = avgCanthal >= 0 ? '#10b981' : '#f43f5e';
         ctx.beginPath();
-        ctx.moveTo(leftInnerEye.x * canvas.width, leftInnerEye.y * canvas.height);
-        ctx.lineTo(leftOuterEye.x * canvas.width, leftOuterEye.y * canvas.height);
+        ctx.moveTo(leftInnerEye.x, leftInnerEye.y); ctx.lineTo(leftOuterEye.x, leftOuterEye.y);
+        ctx.moveTo(rightInnerEye.x, rightInnerEye.y); ctx.lineTo(rightOuterEye.x, rightOuterEye.y);
         ctx.stroke();
 
-        // Вертикаль лица
+        // Вертикальная ось
         ctx.strokeStyle = '#00f0ff';
+        ctx.lineWidth = Math.max(2, canvas.width / 220);
         ctx.beginPath();
-        ctx.moveTo(chinnasionTop.x * canvas.width, chinnasionTop.y * canvas.height);
-        ctx.lineTo(chinMentonBottom.x * canvas.width, chinMentonBottom.y * canvas.height);
+        ctx.moveTo(nasionTop.x, nasionTop.y);
+        ctx.lineTo(chinBottom.x, chinBottom.y);
         ctx.stroke();
 
-        displayResults(canthalTilt, facialIndex, lowerThirdRatio);
+        renderDashboard(avgCanthal, facialIndex, lowerThirdRatio, eyeBrowDist, canvas.width);
     }
 
-    // Вывод результатов на дашборд
-    function displayResults(canthal, fIndex, lowerThird) {
+    function renderDashboard(canthal, fIndex, lowerThird, ebDist, cWidth) {
         document.getElementById('dashboard').style.display = 'block';
         
-        let pslScore = 5.0; // Базовый средний ранг
-        let notes = [];
-        let roadmap = [];
+        let psl = 5.0; // Средняя точка по канонам TrueRateMe
+        let cardsHtml = '';
+        let advice = [];
 
-        let metricsHtml = '';
-
-        // Оценка Canthal Tilt
-        let canthalClass = 'bad';
-        if (canthal > 2) {
-            canthalClass = 'good';
-            pslScore += 0.8;
-            notes.push("Положительный кантал тилт (модельный признак, Hunter Eyes).");
-        } else if (canthal >= 0) {
-            canthalClass = '';
-            notes.push("Нейтральный наклон глазной щели.");
-        } else {
-            pslScore -= 0.8;
-            notes.push("Отрицательный кантал тилт (усталый взгляд).");
-            roadmap.push("Для визуального исправления век подходят патчи, кремы с кофеином и качественный сон.");
-        }
-        metricsHtml += `
-            <div class="metric-item ${canthalClass}">
-                <div class="metric-head"><span>Canthal Tilt (Наклон глаз)</span><span>${canthal}°</span></div>
-                <div class="metric-desc">${canthal > 0 ? 'Положительный' : 'Отрицательный/Нейтральный'} угол фиксации.</div>
-            </div>`;
-
-        // Оценка формы лица (Facial Index)
-        let indexClass = '';
-        if (fIndex >= 0.85 && fIndex <= 0.9) {
-            indexClass = 'good';
-            pslScore += 0.6;
-            notes.push("Идеальные пропорции соотношения высоты и ширины лица.");
-        } else {
-            notes.push("Незначительное отклонение от классического золотого сечения.");
-        }
-        metricsHtml += `
-            <div class="metric-item ${indexClass}">
-                <div class="metric-head"><span>Facial Index (Индекс гармонии)</span><span>${fIndex}</span></div>
-                <div class="metric-desc">Соотношение ширины скул к высоте черепной коробки. Идеал: 0.85-0.9.</div>
-            </div>`;
-
-        // Оценка нижней трети (Lower Third)
-        let ltClass = '';
-        if (lowerThird < 0.33) {
-            ltClass = 'bad';
-            pslScore -= 0.5;
-            notes.push("Слабовыраженная или укороченная нижняя треть лица.");
-            roadmap.push("Для укрепления контуров челюсти и тонизирования зон рекомендуется практиковать правильную осанку и положение языка на нёбе (Мьюинг / Mewing). Избегайте сна на одном боку во избежание мышечных спазмов.");
-        } else {
-            ltClass = 'good';
-            notes.push("Развитая, пропорциональная нижняя челюсть.");
-        }
-        metricsHtml += `
-            <div class="metric-item ${ltClass}">
-                <div class="metric-head"><span>Lower Third Ratio (Нижняя треть)</span><span>${lowerThird}</span></div>
-                <div class="metric-desc">Доля челюстной зоны в вертикали лица. Норма: ~0.33.</div>
-            </div>`;
-
-        // Коррекция и вывод итогового PSL
-        pslScore = Math.max(1, Math.min(10, pslScore)).toFixed(1);
-        document.getElementById('res-psl').innerText = pslScore;
+        // Карта 1: Canthal Tilt
+        let cClass = 'status-bad';
+        if (canthal > 1.5) { cClass = 'status-good'; psl += 0.8; }
+        else if (canthal >= 0) { cClass = 'status-warn'; psl += 0.2; }
+        else { psl -= 0.8; advice.push("Зафиксирован отрицательный наклон глаз (усталый взгляд). Минимизировать его помогают патчи, регулярный сон и легкий массаж зоны вокруг глаз для улучшения циркуляции."); }
         
-        let tierText = "High Tier MTN";
-        if (pslScore >= 6.0) tierText = "Chadlite";
-        if (pslScore >= 7.5) tierText = "Chad";
-        if (pslScore < 4.0) tierText = "Low Tier MTN";
-        document.getElementById('res-tier').innerText = tierText;
+        cardsHtml += `
+            <div class="metric-card ${cClass}">
+                <div class="metric-meta"><span>Canthal Tilt (Наклон глаз)</span><span>${canthal}°</span></div>
+                <div class="metric-info">Положительный угол (>0°) формирует "модельный" взгляд. Отрицательный придает лицу усталость.</div>
+            </div>`;
 
-        document.getElementById('metrics-list').innerHTML = metricsHtml;
+        // Карта 2: Facial Index
+        let fClass = 'status-warn';
+        if (fIndex >= 0.83 && fIndex <= 0.89) { fClass = 'status-good'; psl += 0.5; }
+        cardsHtml += `
+            <div class="metric-card ${fClass}">
+                <div class="metric-meta"><span>Facial Index (Пропорции)</span><span>${fIndex}</span></div>
+                <div class="metric-info">Отношение вертикали лица к его горизонтальной ширине. Норма гармонии: 0.83 - 0.89.</div>
+            </div>`;
 
-        if(roadmap.length === 0) {
-            roadmap.push("Глобальных диспропорций не выявлено. Поддерживайте мышечный тонус лица и качественный уход за кожей.");
+        // Карта 3: Нижняя треть
+        let ltClass = 'status-bad';
+        if (lowerThird >= 0.30 && lowerThird <= 0.35) { ltClass = 'status-good'; psl += 0.4; }
+        else { 
+            psl -= 0.4; 
+            advice.push("Нижняя треть имеет легкое отклонение от симметрии третей. Для улучшения контуров нижней челюсти и укрепления жевательной зоны практикуйте контроль осанки шеи и правильное положение языка (Мьюинг). Важно спать равномерно, избегая сильного сдавливания одной стороны."); 
         }
-        document.getElementById('res-roadmap').innerText = roadmap.join(' ');
+        cardsHtml += `
+            <div class="metric-card ${ltClass}">
+                <div class="metric-meta"><span>Lower Third Ratio (Нижняя треть)</span><span>${lowerThird}</span></div>
+                <div class="metric-info">Доля подбородка и челюсти в общей структуре лица. Золотой стандарт: ~0.33.</div>
+            </div>`;
+
+        // Расчет итогового рейтинга
+        psl = Math.max(1.0, Math.min(10.0, psl)).toFixed(1);
+        document.getElementById('psl-score-output').innerText = psl;
+        
+        let tier = "Mid Tier MTN";
+        if (psl >= 6.0) tier = "Chadlite";
+        if (psl >= 7.5) tier = "Chad";
+        if (psl < 4.0) tier = "Low Tier MTN";
+        document.getElementById('psl-tier-output').innerText = tier;
+
+        document.getElementById('metrics-container').innerHTML = cardsHtml;
+        
+        if (advice.length === 0) {
+            advice.push("Глобальных диспропорций в костной структуре не выявлено. Поддерживайте тонус кожи, следите за осанкой и общим процентом жира.");
+        }
+        document.getElementById('roadmap-output').innerText = advice.join(' ');
     }
 </script>
 </body>
