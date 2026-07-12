@@ -786,7 +786,7 @@
 
         DOM.roadmapOutput.innerText = clinicalRoadmapNotes.join(' ');
 
-        // ПЛАВНЫЙ АВТОМАТИЧЕСКИЙ СКРОЛЛ К РЕЗУЛЬТАТАМ НА МОБИЛЬНЫХ ЭКРАНАХ
+        // ПЛАВНЫЙ А ВТОМАТИЧЕСКИЙ СКРОЛЛ К РЕЗУЛЬТАТАМ НА МОБИЛЬНЫХ ЭКРАНАХ
         setTimeout(() => {
             DOM.dashboard.scrollIntoView({ behavior: 'smooth', block: 'start' });
             sysLog("Выполнен скролл экрана к панели дашборда.");
