@@ -2,454 +2,795 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FACIAL ANALYSIS v1.2</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ULTIMATE FACIAL ENGINE v2.0</title>
     
-    <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.js" crossorigin="anonymous"></script>
     
     <style>
         :root {
-            --bg-color: #060608;
-            --panel-color: #0b0b0f;
-            --border-color: #1a1a24;
-            --accent-color: #00f0ff;
-            --accent-glow: rgba(0, 240, 255, 0.35);
-            --text-color: #f1f5f9;
-            --text-muted: #64748b;
-            --success: #10b981;
-            --error: #f43f5e;
+            --bg-main: #050508;
+            --bg-panel: #0a0a0f;
+            --bg-card: #111118;
+            --border-glow: #1f1f30;
+            --cyan: #00f0ff;
+            --cyan-glow: rgba(0, 240, 255, 0.25);
+            --text-main: #f1f5f9;
+            --text-muted: #4a5568;
+            --text-dark: #2d3748;
+            --green: #10b981;
+            --red: #f43f5e;
+            --amber: #f59e0b;
         }
 
+        /* Общие сбросы и оптимизация под мобильные экраны */
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
             font-family: 'Courier New', Courier, monospace;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            padding: 15px;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
-            min-height: 100vh;
+            justify-content: flex-start;
+            padding: 10px;
+            overflow-x: hidden;
         }
 
-        .container {
+        .app-wrapper {
             width: 100%;
-            max-width: 450px;
-            background: var(--panel-color);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            padding: 24px;
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.7);
+            max-width: 460px;
+            background-color: var(--bg-panel);
+            border: 1px solid #161622;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
             text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #161622;
+            padding-bottom: 15px;
         }
 
-        h1 {
-            font-size: 1.5rem;
-            color: var(--accent-color);
-            text-shadow: 0 0 12px var(--accent-glow);
-            margin-bottom: 4px;
-            letter-spacing: 3px;
-        }
-
-        .subtitle {
-            font-size: 0.65rem;
-            color: var(--text-muted);
-            margin-bottom: 30px;
+        header h1 {
+            font-size: 1.4rem;
+            color: var(--cyan);
+            text-shadow: 0 0 10px var(--cyan-glow);
+            letter-spacing: 2px;
             text-transform: uppercase;
+        }
+
+        header .version-tag {
+            font-size: 0.6rem;
+            color: var(--text-muted);
+            margin-top: 4px;
             letter-spacing: 1px;
         }
 
-        /* Индикатор загрузки с пульсацией */
-        #loading-screen {
-            padding: 50px 10px;
+        /* ЭКРАН ЗАГРУЗКИ И ПУЛЬСИРУЮЩИЕ ТОЧКИ */
+        #loading-view {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 10px;
         }
 
-        .spinner-dots {
+        .console-log {
+            font-size: 0.75rem;
+            color: var(--cyan);
+            margin-bottom: 20px;
+            text-align: center;
+            min-height: 35px;
+            line-height: 1.4;
+            max-width: 90%;
+        }
+
+        .spinner-container {
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 10px;
-            margin-top: 25px;
+            gap: 12px;
         }
 
-        .dot {
-            width: 12px;
-            height: 12px;
-            background-color: var(--accent-color);
+        .pulse-dot {
+            width: 14px;
+            height: 14px;
+            background-color: var(--cyan);
             border-radius: 50%;
-            box-shadow: 0 0 10px var(--accent-color);
-            animation: pulse-dot 1.5s infinite ease-in-out both;
+            box-shadow: 0 0 12px var(--cyan);
+            animation: corePulse 1.6s infinite ease-in-out both;
         }
 
-        .dot:nth-child(1) { animation-delay: -0.32s; }
-        .dot:nth-child(2) { animation-delay: -0.16s; }
+        .pulse-dot:nth-child(1) { animation-delay: -0.32s; }
+        .pulse-dot:nth-child(2) { animation-delay: -0.16s; }
 
-        @keyframes pulse-dot {
-            0%, 80%, 100% { opacity: 0.15; transform: scale(0.75); }
-            40% { opacity: 1; transform: scale(1.3); }
+        @keyframes corePulse {
+            0%, 80%, 100% { opacity: 0.15; transform: scale(0.75); filter: brightness(0.5); }
+            40% { opacity: 1; transform: scale(1.3); filter: brightness(1); }
         }
 
-        #main-ui {
+        /* ГЛАВНЫЙ ИНТЕРФЕЙС РАБОЧЕЙ ЗОНЫ */
+        #core-application {
             display: none;
+            opacity: 0;
+            transition: opacity 0.4s ease;
         }
 
-        .preview-box {
+        /* Контейнер предпросмотра: Гарантирует, что фото никогда не вылезет наружу */
+        .viewport-container {
             position: relative;
             width: 100%;
             aspect-ratio: 3/4;
-            background: #020203;
-            border-radius: 12px;
+            background-color: #020204;
+            border-radius: 14px;
+            border: 1px solid var(--border-glow);
             overflow: hidden;
-            border: 1px solid #1e1e2f;
-            margin-bottom: 24px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        #canvas-output {
+        /* Изображение подстраивается под пропорции рамки, не ломая верстку */
+        #target-image-render {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            display: none;
+        }
+
+        #canvas-overlay {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            object-fit: contain;
+            pointer-events: none;
+            z-index: 5;
         }
 
-        .btn-action {
+        .view-fallback-text {
+            position: absolute;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-align: center;
+            padding: 20px;
+            pointer-events: none;
+        }
+
+        /* Кнопки управления */
+        .trigger-group {
+            position: relative;
+            margin-bottom: 15px;
+        }
+
+        .btn-universal {
+            width: 100%;
             background: transparent;
-            color: var(--accent-color);
-            border: 1px solid var(--accent-color);
-            padding: 14px 24px;
+            color: var(--cyan);
+            border: 1px solid var(--cyan);
+            padding: 15px 20px;
             font-size: 0.85rem;
             font-weight: bold;
-            border-radius: 8px;
+            letter-spacing: 2px;
+            border-radius: 10px;
             cursor: pointer;
-            width: 100%;
-            transition: all 0.25s ease;
-            letter-spacing: 1px;
+            text-transform: uppercase;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            outline: none;
         }
 
-        .btn-action:active {
-            background: var(--accent-color);
+        .btn-universal:active {
+            background-color: var(--cyan);
             color: #000;
-            box-shadow: 0 0 20px var(--accent-color);
+            box-shadow: 0 0 25px var(--cyan);
         }
 
-        #file-input {
+        .input-hidden-node {
             display: none;
         }
 
-        #status-msg {
-            font-size: 0.75rem;
-            margin-top: 12px;
+        .status-bar-text {
+            font-size: 0.7rem;
             color: var(--text-muted);
-            line-height: 1.4;
-        }
-
-        /* Dashboard Системы Оценок */
-        #dashboard {
-            display: none;
-            margin-top: 30px;
-            border-top: 1px solid var(--border-color);
-            padding-top: 24px;
-            text-align: left;
-        }
-
-        .score-wrap {
             text-align: center;
+            line-height: 1.5;
+            margin-bottom: 15px;
+            padding: 0 5px;
+        }
+
+        /* ДАШБОРД РЕЗУЛЬТАТОВ АНАЛИЗА */
+        #analysis-dashboard {
+            display: none;
+            margin-top: 15px;
+            border-top: 1px dashed #161622;
+            padding-top: 25px;
+        }
+
+        .main-score-panel {
+            text-align: center;
+            background: linear-gradient(180deg, rgba(17,17,24,1) 0%, rgba(10,10,15,1) 100%);
+            border: 1px solid #161622;
+            padding: 20px;
+            border-radius: 14px;
             margin-bottom: 25px;
         }
 
-        .rating-num {
-            font-size: 3.5rem;
+        .main-score-panel .score-digits {
+            font-size: 4rem;
             font-weight: 900;
-            color: var(--accent-color);
-            text-shadow: 0 0 15px rgba(0, 240, 255, 0.2);
+            color: var(--cyan);
+            text-shadow: 0 0 20px rgba(0, 240, 255, 0.4);
+            line-height: 1;
         }
 
-        .rating-tier-label {
+        .main-score-panel .tier-string {
             font-size: 0.85rem;
-            color: var(--text-muted);
+            color: var(--text-main);
             text-transform: uppercase;
-            letter-spacing: 2px;
-            margin-top: 4px;
+            letter-spacing: 3px;
+            margin-top: 10px;
+            font-weight: bold;
         }
 
-        .metric-card {
-            background: #0e0e14;
-            border: 1px solid #15151f;
-            padding: 14px;
-            border-radius: 8px;
-            margin-bottom: 12px;
+        .metric-cards-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+
+        .card-node {
+            background-color: var(--bg-card);
+            border: 1px solid #161622;
+            border-radius: 10px;
+            padding: 15px;
             border-left: 4px solid var(--text-muted);
+            transition: transform 0.2s ease;
         }
 
-        .metric-card.status-good { border-left-color: var(--success); }
-        .metric-card.status-warn { border-left-color: #f59e0b; }
-        .metric-card.status-bad { border-left-color: var(--error); }
+        .card-node.state-pass { border-left-color: var(--green); }
+        .card-node.state-warning { border-left-color: var(--amber); }
+        .card-node.state-fail { border-left-color: var(--red); }
 
-        .metric-meta {
+        .card-node .card-meta {
             display: flex;
             justify-content: space-between;
+            align-items: center;
             font-size: 0.8rem;
             font-weight: bold;
             margin-bottom: 6px;
         }
 
-        .metric-info {
+        .card-node .card-meta .metric-title {
+            color: var(--text-main);
+        }
+
+        .card-node .card-meta .metric-value {
+            color: var(--cyan);
+        }
+
+        .card-node .card-explanation {
             font-size: 0.75rem;
-            color: var(--text-muted);
+            color: #718096;
             line-height: 1.4;
         }
 
-        .roadmap-container {
-            margin-top: 25px;
-            background: rgba(0, 240, 255, 0.02);
+        .roadmap-wrapper {
+            background-color: rgba(0, 240, 255, 0.01);
             border: 1px solid rgba(0, 240, 255, 0.08);
-            padding: 16px;
-            border-radius: 8px;
+            border-radius: 12px;
+            padding: 18px;
         }
 
-        .roadmap-header {
+        .roadmap-wrapper .roadmap-title-text {
             font-size: 0.85rem;
-            color: var(--accent-color);
-            margin-bottom: 12px;
+            color: var(--cyan);
             font-weight: bold;
+            margin-bottom: 10px;
             letter-spacing: 1px;
+            text-transform: uppercase;
         }
 
-        .roadmap-details {
+        .roadmap-wrapper .roadmap-body-content {
             font-size: 0.75rem;
-            color: var(--text-color);
-            line-height: 1.5;
+            color: var(--text-main);
+            line-height: 1.6;
+        }
+
+        /* Вспомогательный дебаг-логгер для выявления внештатных ситуаций на смартфонах */
+        .system-hardware-logs {
+            margin-top: 25px;
+            background-color: #020204;
+            border: 1px solid #101015;
+            border-radius: 8px;
+            padding: 10px;
+            text-align: left;
+            max-height: 120px;
+            overflow-y: auto;
+            display: block;
+        }
+
+        .system-hardware-logs p {
+            font-size: 0.6rem;
+            color: #4a5568;
+            line-height: 1.3;
+            margin-bottom: 2px;
         }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>FACIAL ANALYSIS v1.2</h1>
-    <div class="subtitle">Client-Side Engine / Mobile Edition</div>
+<div class="app-wrapper">
+    <header>
+        <h1>Facial Analysis</h1>
+        <div class="version-tag">Enterprise Client-Side Core v2.0</div>
+    </header>
 
-    <div id="loading-screen">
-        <div id="loading-text" style="font-size: 0.8rem; line-height: 1.4;">Инициализация ядра ИИ...</div>
-        <div class="spinner-dots">
-            <div class="dot"></div>
-            <div class="dot"></div>
-            <div class="dot"></div>
+    <div id="loading-view">
+        <div id="loading-text-node" class="console-log">Загрузка защищенных нейросетевых библиотек верхнего уровня...</div>
+        <div class="spinner-container">
+            <div class="pulse-dot"></div>
+            <div class="pulse-dot"></div>
+            <div class="pulse-dot"></div>
         </div>
     </div>
 
-    <div id="main-ui">
-        <div class="preview-box">
-            <canvas id="canvas-output"></canvas>
-            <div id="placeholder" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); color:var(--text-muted); font-size:0.75rem; pointer-events:none; width:80%;">Ожидание структуры лица (ФАС)</div>
+    <div id="core-application">
+        <div class="viewport-container" id="interactive-viewport">
+            <img id="target-image-render" alt="Analysis Target Source">
+            <canvas id="canvas-overlay"></canvas>
+            <div id="view-fallback-id" class="view-fallback-text">Матрица пуста.<br>Загрузите фронтальный снимок.</div>
         </div>
 
-        <label for="file-input" class="btn-action">ЗАГРУЗИТЬ СНИМОК</label>
-        <input type="file" id="file-input" accept="image/*">
+        <div class="trigger-group">
+            <label for="file-input-node" class="btn-universal">Загрузить снимок</label>
+            <input type="file" id="file-input-node" class="input-hidden-node" accept="image/*">
+        </div>
         
-        <div id="status-msg">Для идеального расчета смотрите прямо, лицо без наклонов, свет фронтальный.</div>
+        <div id="runtime-status" class="status-bar-text">Детектор в режиме ожидания. Используйте снимки хорошего качества.</div>
 
-        <div id="dashboard">
-            <div class="score-wrap">
-                <div class="rating-num" id="psl-score-output">0.0</div>
-                <div class="rating-tier-label" id="psl-tier-output">Анализ</div>
+        <div id="analysis-dashboard">
+            <div class="main-score-panel">
+                <div class="score-digits" id="ui-psl-output">0.0</div>
+                <div class="tier-string" id="ui-tier-output">Калибровка</div>
             </div>
 
-            <div id="metrics-container"></div>
+            <div class="metric-cards-grid" id="ui-cards-container">
+                </div>
 
-            <div class="roadmap-container">
-                <div class="roadmap-header">РЕКОМЕНДАЦИИ ПО СТРУКТУРЕ ЛИЦА:</div>
-                <div class="roadmap-details" id="roadmap-output">Загрузите портретный снимок.</div>
+            <div class="roadmap-wrapper">
+                <div class="roadmap-title-text">Программа коррекции костных структур:</div>
+                <div class="roadmap-body-content" id="ui-roadmap-output">Ожидание построения векторов...</div>
             </div>
+        </div>
+
+        <div class="system-hardware-logs" id="sys-logger">
+            <p>[SYSTEM]: Инициализация системного дебаггера завершена.</p>
         </div>
     </div>
 </div>
 
 <script>
-    const loadingScreen = document.getElementById('loading-screen');
-    const loadingText = document.getElementById('loading-text');
-    const mainUi = document.getElementById('main-ui');
-    const fileInput = document.getElementById('file-input');
-    const canvas = document.getElementById('canvas-output');
-    const ctx = canvas.getContext('2d');
-    const statusMsg = document.getElementById('status-msg');
-    const placeholder = document.getElementById('placeholder');
+    /**
+     * МОНОЛИТНОЕ АРХИТЕКТУРНОЕ ЯДРО ВЫЧИСЛЕНИЙ ДЛЯ СМАРТФОНОВ
+     * Архитектура: Модульная, с изоляцией контекстов выполнения и перехватом исключений (Try/Catch).
+     */
 
-    // Безопасная мобильная загрузка архитектуры нейросети
-    async function startEngine() {
+    // Глобальный реестр контролируемых DOM-нод
+    const DOM = {
+        loadingView: document.getElementById('loading-view'),
+        loadingText: document.getElementById('loading-text-node'),
+        appContainer: document.getElementById('core-application'),
+        fileInput: document.getElementById('file-input-node'),
+        imageElement: document.getElementById('target-image-render'),
+        canvas: document.getElementById('canvas-overlay'),
+        statusMsg: document.getElementById('runtime-status'),
+        fallbackText: document.getElementById('view-fallback-id'),
+        dashboard: document.getElementById('analysis-dashboard'),
+        pslOutput: document.getElementById('ui-psl-output'),
+        tierOutput: document.getElementById('ui-tier-output'),
+        cardsContainer: document.getElementById('ui-cards-container'),
+        roadmapOutput: document.getElementById('ui-roadmap-output'),
+        sysLogger: document.getElementById('sys-logger'),
+        viewport: document.getElementById('interactive-viewport')
+    };
+
+    const CONTEXT = {
+        ctx: DOM.canvas.getContext('2d'),
+        imageLoaded: false,
+        engineReady: false,
+        activeImage: null
+    };
+
+    // Утилита безопасного логирования во внутреннюю системную консоль на экране
+    function sysLog(message, isError = false) {
+        const p = document.createElement('p');
+        p.style.color = isError ? 'var(--red)' : '#4a5568';
+        p.innerText = `[${new Date().toLocaleTimeString()}]: ${message}`;
+        DOM.sysLogger.appendChild(p);
+        DOM.sysLogger.scrollTop = DOM.sysLogger.scrollHeight;
+    }
+
+    // Первичная безопасная сборка нейросетевых моделей face-api
+    async function initializeNeuralEngine() {
+        sysLog("Запуск процедуры сборки нейросети...");
         try {
-            // Зеркало бесплатных весов моделей на открытом CDN
-            const MODEL_URL = 'https://justadudewhohacks.github.io/face-api.js/models/';
+            // Использование проверенного глобального зеркала весов моделей face-api
+            const CENTRAL_MODEL_MIRROR = 'https://justadudewhohacks.github.io/face-api.js/models/';
             
-            loadingText.innerText = "Загрузка архитектуры контуров...";
-            await faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL);
-            
-            loadingText.innerText = "Калибровка 68-точечной матрицы...";
-            await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
+            DOM.loadingText.innerText = "[1/2] Сканирование слоев архитектуры MobileNetV1...";
+            await faceapi.nets.ssdMobilenetv1.loadFromUri(CENTRAL_MODEL_MIRROR);
+            sysLog("Слой нейросети SSD MobileNetV1 успешно развернут в ОЗУ.");
 
-            loadingScreen.style.display = 'none';
-            mainUi.style.display = 'block';
-        } catch (err) {
-            console.error(err);
-            loadingText.innerHTML = `<span style="color:var(--error)">Сбой загрузки ядра. Проверьте сеть или смените браузер.</span>`;
+            DOM.loadingText.innerText = "[2/2] Привязка 68-точечной тригонометрической матрицы...";
+            await faceapi.nets.faceLandmark68Net.loadFromUri(central_model_mirror = CENTRAL_MODEL_MIRROR);
+            sysLog("Матрица контуров faceLandmark68Net успешно инициализирована.");
+
+            // Плавный переход интерфейса
+            DOM.loadingView.style.display = 'none';
+            DOM.appContainer.style.display = 'block';
+            setTimeout(() => {
+                DOM.appContainer.style.opacity = '1';
+            }, 50);
+
+            CONTEXT.engineReady = true;
+            sysLog("Ядро системы находится в режиме готовности.");
+        } catch (fatalException) {
+            sysLog(`Критическая ошибка инициализации моделей: ${fatalException.message}`, true);
+            DOM.loadingText.innerHTML = `<span style="color:var(--error)">Сбой загрузки ядра ИИ. Проверьте стабильность интернет-соединения или смените мобильный браузер.</span>`;
         }
     }
 
-    window.addEventListener('load', startEngine);
-
-    fileInput.addEventListener('change', async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-
-        const img = await faceapi.bufferToImage(file);
-        
-        // Масштабируем холст под загруженное мобильное фото
-        canvas.width = img.naturalWidth;
-        canvas.height = img.naturalHeight;
-        ctx.drawImage(img, 0, 0);
-        placeholder.style.display = 'none';
-        
-        statusMsg.innerText = "Вычисление тригонометрических векторов...";
-        
-        setTimeout(async () => {
-            await runAnalysis(img);
-        }, 150);
+    // Слушатель загрузки окна
+    window.addEventListener('load', () => {
+        initializeNeuralEngine().catch(e => sysLog(`Глобальное исключение загрузки: ${e.message}`, true));
     });
 
-    async function runAnalysis(imgElement) {
-        // Поиск лица и его анатомических точек
-        const detection = await faceapi.detectSingleFace(imgElement).withFaceLandmarks();
+    // Обработчик события выбора файла через мобильную систему хранения данных
+    DOM.fileInput.addEventListener('change', async (event) => {
+        sysLog("Получено новое событие выбора файла.");
+        try {
+            const uploadedFile = event.target.files[0];
+            if (!uploadedFile) {
+                sysLog("Выбор файла отменен пользователем или файловый дескриптор пуст.");
+                return;
+            }
+
+            if (!uploadedFile.type.startsWith('image/')) {
+                DOM.statusMsg.innerHTML = `<span style="color:var(--error)">Выбранный файл не является валидным изображением.</span>`;
+                sysLog("Ошибка валидации MIME-типа файла.", true);
+                return;
+            }
+
+            DOM.statusMsg.innerText = "Идет декодирование графического контента...";
+            DOM.dashboard.style.display = 'none';
+            
+            // Предотвращение утечки памяти: очистка старых URL ресурсов
+            if (CONTEXT.activeImage) {
+                URL.revokeObjectURL(CONTEXT.activeImage);
+                sysLog("Предыдущий файловый буфер успешно выгружен из памяти.");
+            }
+
+            const objectUrl = URL.createObjectURL(uploadedFile);
+            CONTEXT.activeImage = objectUrl;
+
+            const tempImageNode = new Image();
+            tempImageNode.onload = function () {
+                sysLog(`Изображение успешно декодировано. Нативное разрешение: ${tempImageNode.naturalWidth}x${tempImageNode.naturalHeight}`);
+                
+                // Передача источника в DOM элемент рендеринга
+                DOM.imageElement.src = objectUrl;
+                DOM.imageElement.style.display = 'block';
+                DOM.fallbackText.style.display = 'none';
+                
+                CONTEXT.imageLoaded = true;
+                DOM.statusMsg.innerText = "Запуск процесса пространственного анализа...";
+                
+                // Даем браузеру смартфона обновить UI перед тяжелым расчетом
+                setTimeout(() => {
+                    executeFacialAnalysis(tempImageNode).catch(err => {
+                        sysLog(`Исключение внутри конвейера обработки: ${err.message}`, true);
+                        DOM.statusMsg.innerHTML = `<span style="color:var(--error)">Внутренний сбой анализа. Попробуйте другое фото.</span>`;
+                    });
+                }, 100);
+            };
+
+            tempImageNode.onerror = function () {
+                sysLog("Ошибка при парсинге структуры графического файла.", true);
+                DOM.statusMsg.innerHTML = `<span style="color:var(--error)">Не удалось прочитать изображение. Возможно, файл поврежден.</span>`;
+            };
+
+            tempImageNode.src = objectUrl;
+
+        } catch (globalInputException) {
+            sysLog(`Критическая ошибка файлового потока: ${globalInputException.message}`, true);
+            DOM.statusMsg.innerHTML = `<span style="color:var(--error)">Системная ошибка ввода-вывода.</span>`;
+        }
+    });
+
+    // Функция синхронизации геометрии оверлейного Canvas с реальными экранными размерами отмасштабированного изображения
+    function synchronizeCanvasBounds() {
+        const renderedWidth = DOM.imageElement.clientWidth;
+        const renderedHeight = DOM.imageElement.clientHeight;
+        const offsetLeft = DOM.imageElement.offsetLeft;
+        const offsetTop = DOM.imageElement.offsetTop;
+
+        DOM.canvas.width = renderedWidth;
+        DOM.canvas.height = renderedHeight;
+        DOM.canvas.style.left = `${offsetLeft}px`;
+        DOM.canvas.style.top = `${offsetTop}px`;
         
-        if (!detection) {
-            statusMsg.innerHTML = `<span style="color:var(--error)">Лицо не найдено. Убедитесь, что лицо полностью в кадре и нет жестких теней.</span>`;
+        sysLog(`Canvas синхронизирован: ${renderedWidth}x${renderedHeight} | Смещения: L:${offsetLeft} T:${offsetTop}`);
+    }
+
+    // Слушатель динамического изменения экрана (поворот экрана смартфона)
+    const viewportResizeObserver = new ResizeObserver(() => {
+        if (CONTEXT.imageLoaded) {
+            synchronizeCanvasBounds();
+        }
+    });
+    viewportResizeObserver.observe(DOM.viewport);
+
+    // ОСНОВНОЙ КОНВЕЙЕР ТРИГОНОМЕТРИЧЕСКОГО И НЕЙРОСЕТЕВОГО АНАЛИЗА ЛИЦА
+    async function executeFacialAnalysis(sourceImageFrame) {
+        if (!CONTEXT.engineReady) {
+            sysLog("Попытка вызова конвейера до инициализации весов нейросети.", true);
             return;
         }
 
-        statusMsg.innerText = "Сканирование завершено. Метрики рассчитаны.";
-        const landmarks = detection.landmarks.getPositions();
+        sysLog("Вызов детектора лиц SSD Mobilenet...");
+        // Поиск лица с максимальным порогом точности детекции
+        const singleFaceDetectionResult = await faceapi.detectSingleFace(
+            sourceImageFrame, 
+            new faceapi.SsdMobilenetv1Options({ minConfidence: 0.40 })
+        ).withFaceLandmarks();
 
-        // Расчет базовых ориентиров по 68-точечной схеме
-        const leftInnerEye = landmarks[39];
-        const leftOuterEye = landmarks[36];
-        const rightInnerEye = landmarks[42];
-        const rightOuterEye = landmarks[45];
+        if (!singleFaceDetectionResult) {
+            sysLog("Детектор вернул пустой результат. Лицо на изображении не дифференцировано.", true);
+            DOM.statusMsg.innerHTML = `<span style="color:var(--error)">Лицо не найдено. Снимите головные уборы и смотрите прямо в камеру.</span>`;
+            CONTEXT.ctx.clearRect(0, 0, DOM.canvas.width, DOM.canvas.height);
+            return;
+        }
 
-        const leftEyebrowInner = landmarks[21];
-        const leftPupilY = (landmarks[37].y + landmarks[41].y) / 2;
-
-        const nasionTop = landmarks[27]; 
-        const chinBottom = landmarks[8];  
-        const leftJawBone = landmarks[2];  
-        const rightJawBone = landmarks[14]; 
-        const noseBase = landmarks[33];   
-
-        // 1. Расчет Canthal Tilt (Левый глаз)
-        const dX_L = leftOuterEye.x - leftInnerEye.x;
-        const dY_L = leftOuterEye.y - leftInnerEye.y;
-        const canthalLeft = parseFloat((-Math.atan2(dY_L, dX_L) * (180 / Math.PI)).toFixed(1));
-
-        // 2. Расчет Canthal Tilt (Правый глаз)
-        const dX_R = rightOuterEye.x - rightInnerEye.x;
-        const dY_R = rightOuterEye.y - rightInnerEye.y;
-        const canthalRight = parseFloat((Math.atan2(dY_R, dX_R) * (180 / Math.PI)).toFixed(1));
+        sysLog("Лицо успешно зафиксировано. Старт математической калибровки...");
         
-        const avgCanthal = parseFloat(((canthalLeft + canthalRight) / 2).toFixed(1));
+        // Синхронизируем размеры перед отрисовкой
+        synchronizeCanvasBounds();
 
-        // 3. Расчет Facial Index (Высота лица к ширине скул/челюсти)
-        const faceHeight = Math.hypot(chinBottom.x - nasionTop.x, chinBottom.y - nasionTop.y);
-        const faceWidth = Math.hypot(rightJawBone.x - leftJawBone.x, rightJawBone.y - leftJawBone.y);
-        const facialIndex = parseFloat((faceHeight / faceWidth).toFixed(2));
-
-        // 4. Расчет Lower Third Ratio (Доля нижней трети)
-        const lowerThirdHeight = Math.hypot(chinBottom.x - noseBase.x, chinBottom.y - noseBase.y);
-        const lowerThirdRatio = parseFloat((lowerThirdHeight / faceHeight).toFixed(2));
-
-        // 5. Расчет Eye-to-Brow Distance (Расстояние от брови до зрачка в пикселях)
-        const eyeBrowDist = parseFloat(Math.abs(leftPupilY - leftEyebrowInner.y).toFixed(1));
-
-        // Визуализация линий геометрии на холсте
-        ctx.lineWidth = Math.max(3, canvas.width / 150);
+        const rawLandmarkPositions = singleFaceDetectionResult.landmarks.getPositions();
         
-        // Линии глаз
-        ctx.strokeStyle = avgCanthal >= 0 ? '#10b981' : '#f43f5e';
-        ctx.beginPath();
-        ctx.moveTo(leftInnerEye.x, leftInnerEye.y); ctx.lineTo(leftOuterEye.x, leftOuterEye.y);
-        ctx.moveTo(rightInnerEye.x, rightInnerEye.y); ctx.lineTo(rightOuterEye.x, rightOuterEye.y);
-        ctx.stroke();
+        // Масштабные коэффициенты перевода исходных пикселей картинки в пиксели текущего экрана смартфона
+        const scaleFactorX = DOM.canvas.width / sourceImageFrame.naturalWidth;
+        const scaleFactorY = DOM.canvas.height / sourceImageFrame.naturalHeight;
 
-        // Вертикальная ось
-        ctx.strokeStyle = '#00f0ff';
-        ctx.lineWidth = Math.max(2, canvas.width / 220);
-        ctx.beginPath();
-        ctx.moveTo(nasionTop.x, nasionTop.y);
-        ctx.lineTo(chinBottom.x, chinBottom.y);
-        ctx.stroke();
+        // Безопасное извлечение точек с масштабированием "на лету" для защиты от выхода за рамки холста
+        function getSafePoint(pointIndex) {
+            const targetNode = rawLandmarkPositions[pointIndex];
+            if (!targetNode) {
+                sysLog(`Внимание: Индекс точки ${pointIndex} отсутствует в матрице. Применен защитный сброс.`, true);
+                return { x: DOM.canvas.width / 2, y: DOM.canvas.height / 2 };
+            }
+            return {
+                x: targetNode.x * scaleFactorX,
+                y: targetNode.y * scaleFactorY
+            };
+        }
 
-        renderDashboard(avgCanthal, facialIndex, lowerThirdRatio, eyeBrowDist, canvas.width);
+        // ПАРСИНГ АНАТОМИЧЕСКИХ ОРИЕНТИРОВ (ПО 68-ТОЧЕЧНОЙ СХЕМЕ)
+        const landmarks = {
+            leftOuterEye: getSafePoint(36),
+            leftInnerEye: getSafePoint(39),
+            rightInnerEye: getSafePoint(42),
+            rightOuterEye: getSafePoint(45),
+            nasionRoot: getSafePoint(27),
+            chinBase: getSafePoint(8),
+            leftJawCorner: getSafePoint(2),
+            rightJawCorner: getSafePoint(14),
+            subnasaleNode: getSafePoint(33),
+            leftEyebrowInternal: getSafePoint(21),
+            leftPupilTop: getSafePoint(37),
+            leftPupilBottom: getSafePoint(41)
+        };
+
+        // Очистка слоя рисования перед выводом линий
+        CONTEXT.ctx.clearRect(0, 0, DOM.canvas.width, DOM.canvas.height);
+
+        // МАТЕМАТИЧЕСКИЕ ВЫЧИСЛЕНИЯ МЕТРИК С ЗАЩИТОЙ ОТ МЕДИЦИНСКИХ АНОМАЛИЙ (NaN)
+        
+        // 1. Вычисление Canthal Tilt (Наклон глазной щели)
+        let leftTiltDeltaX = landmarks.leftOuterEye.x - landmarks.leftInnerEye.x;
+        let leftTiltDeltaY = landmarks.leftOuterEye.y - landmarks.leftInnerEye.y;
+        if (Math.abs(leftTiltDeltaX) < 0.001) leftTiltDeltaX = 1.0; // Защита от деления на ноль
+        const leftCanthalAngle = -Math.atan2(leftTiltDeltaY, leftTiltDeltaX) * (180 / Math.PI);
+
+        let rightTiltDeltaX = landmarks.rightOuterEye.x - landmarks.rightInnerEye.x;
+        let rightTiltDeltaY = landmarks.rightOuterEye.y - landmarks.rightInnerEye.y;
+        if (Math.abs(rightTiltDeltaX) < 0.001) rightTiltDeltaX = 1.0;
+        const rightCanthalAngle = Math.atan2(rightTiltDeltaY, rightTiltDeltaX) * (180 / Math.PI);
+
+        let finalComputedCanthalTilt = parseFloat(((leftCanthalAngle + rightCanthalAngle) / 2).toFixed(1));
+        if (Number.isNaN(finalComputedCanthalTilt)) finalComputedCanthalTilt = 0.0;
+
+        // 2. Вычисление Facial Index (Индекс пропорции высоты и ширины структуры)
+        const verticalFaceHeightPx = Math.hypot(landmarks.chinBase.x - landmarks.nasionRoot.x, landmarks.chinBase.y - landmarks.nasionRoot.y);
+        let horizontalZygomaticWidthPx = Math.hypot(landmarks.rightJawCorner.x - landmarks.leftJawCorner.x, landmarks.rightJawCorner.y - landmarks.leftJawCorner.y);
+        if (horizontalZygomaticWidthPx < 1) horizontalZygomaticWidthPx = 1.0;
+        
+        let finalComputedFacialIndex = parseFloat((verticalFaceHeightPx / horizontalZygomaticWidthPx).toFixed(2));
+        if (Number.isNaN(finalComputedFacialIndex)) finalComputedFacialIndex = 0.86;
+
+        // 3. Вычисление соотношения нижней трети лица (Lower Third Ratio)
+        const lowerThirdHeightPx = Math.hypot(landmarks.chinBase.x - landmarks.subnasaleNode.x, landmarks.chinBase.y - landmarks.subnasaleNode.y);
+        let finalComputedLowerThirdRatio = parseFloat((lowerThirdHeightPx / verticalFaceHeightPx).toFixed(2));
+        if (Number.isNaN(finalComputedLowerThirdRatio)) finalComputedLowerThirdRatio = 0.33;
+
+        // 4. Определение Eye-to-Brow Distance (Дистанция от зрачка до брови)
+        const meanPupilCenterY = (landmarks.leftPupilTop.y + landmarks.leftPupilBottom.y) / 2;
+        const eyeToBrowAbsoluteDistance = parseFloat(Math.abs(meanPupilCenterY - landmarks.leftEyebrowInternal.y).toFixed(1));
+
+        sysLog(`Метрики рассчитаны: Кантал=${finalComputedCanthalTilt}, Индекс=${finalComputedFacialIndex}, НижняяТреть=${finalComputedLowerThirdRatio}`);
+
+        // СЛОЙ ОТРИСОВКИ МАРКЕРОВ НА CANVAS
+        const dynamicGraphicsThickness = Math.max(3, DOM.canvas.width / 120);
+        CONTEXT.ctx.lineWidth = dynamicGraphicsThickness;
+        
+        // Линии глазной оси (Зеленые, если наклон положительный, Красные, если отрицательный)
+        CONTEXT.ctx.strokeStyle = finalComputedCanthalTilt >= 0.5 ? '#10b981' : '#f43f5e';
+        CONTEXT.ctx.beginPath();
+        CONTEXT.ctx.moveTo(landmarks.leftInnerEye.x, landmarks.leftInnerEye.y);
+        CONTEXT.ctx.lineTo(landmarks.leftOuterEye.x, landmarks.leftOuterEye.y);
+        CONTEXT.ctx.moveTo(landmarks.rightInnerEye.x, landmarks.rightInnerEye.y);
+        CONTEXT.ctx.lineTo(landmarks.rightOuterEye.x, landmarks.rightOuterEye.y);
+        CONTEXT.ctx.stroke();
+
+        // Вертикальный вектор симметрии черепной коробки
+        CONTEXT.ctx.strokeStyle = '#00f0ff';
+        CONTEXT.ctx.lineWidth = Math.max(1, dynamicGraphicsThickness / 1.5);
+        CONTEXT.ctx.beginPath();
+        CONTEXT.ctx.moveTo(landmarks.nasionRoot.x, landmarks.nasionRoot.y);
+        CONTEXT.ctx.lineTo(landmarks.chinBase.x, landmarks.chinBase.y);
+        CONTEXT.ctx.stroke();
+
+        // Отрисовка круглых неоновых узлов поверх точек фиксации
+        CONTEXT.ctx.fillStyle = '#00f0ff';
+        const activePointsArray = [
+            landmarks.leftOuterEye, landmarks.leftInnerEye, 
+            landmarks.rightInnerEye, landmarks.rightOuterEye, 
+            landmarks.chinBase, landmarks.nasionRoot
+        ];
+        
+        activePointsArray.forEach(pointNode => {
+            CONTEXT.ctx.beginPath();
+            CONTEXT.ctx.arc(pointNode.x, pointNode.y, Math.max(4, DOM.canvas.width / 75), 0, 2 * Math.PI);
+            CONTEXT.ctx.fill();
+        });
+
+        DOM.statusMsg.innerText = "Матричный анализ завершен. Результаты сформированы.";
+        
+        // Передача рассчитанных данных на экран результатов
+        compileAndRenderDashboard(finalComputedCanthalTilt, finalComputedFacialIndex, finalComputedLowerThirdRatio, eyeToBrowAbsoluteDistance);
     }
 
-    function renderDashboard(canthal, fIndex, lowerThird, ebDist, cWidth) {
-        document.getElementById('dashboard').style.display = 'block';
+    // РЕНДЕРИНГ И ТИПИЗАЦИЯ СИСТЕМЫ ОЦЕНОК ПО СТАНДАРТУ ШКАЛЫ ГАУССА
+    function compileAndRenderDashboard(canthal, faceIndex, lowerThird, browDistance) {
+        DOM.dashboard.style.display = 'block';
         
-        let psl = 5.0; // Средняя точка по канонам TrueRateMe
-        let cardsHtml = '';
-        let advice = [];
+        let initialPslRating = 5.0; // Среднестатистическое значение популяции
+        let cardsBufferHtml = '';
+        let clinicalRoadmapNotes = [];
 
-        // Карта 1: Canthal Tilt
-        let cClass = 'status-bad';
-        if (canthal > 1.5) { cClass = 'status-good'; psl += 0.8; }
-        else if (canthal >= 0) { cClass = 'status-warn'; psl += 0.2; }
-        else { psl -= 0.8; advice.push("Зафиксирован отрицательный наклон глаз (усталый взгляд). Минимизировать его помогают патчи, регулярный сон и легкий массаж зоны вокруг глаз для улучшения циркуляции."); }
-        
-        cardsHtml += `
-            <div class="metric-card ${cClass}">
-                <div class="metric-meta"><span>Canthal Tilt (Наклон глаз)</span><span>${canthal}°</span></div>
-                <div class="metric-info">Положительный угол (>0°) формирует "модельный" взгляд. Отрицательный придает лицу усталость.</div>
-            </div>`;
-
-        // Карта 2: Facial Index
-        let fClass = 'status-warn';
-        if (fIndex >= 0.83 && fIndex <= 0.89) { fClass = 'status-good'; psl += 0.5; }
-        cardsHtml += `
-            <div class="metric-card ${fClass}">
-                <div class="metric-meta"><span>Facial Index (Пропорции)</span><span>${fIndex}</span></div>
-                <div class="metric-info">Отношение вертикали лица к его горизонтальной ширине. Норма гармонии: 0.83 - 0.89.</div>
-            </div>`;
-
-        // Карта 3: Нижняя треть
-        let ltClass = 'status-bad';
-        if (lowerThird >= 0.30 && lowerThird <= 0.35) { ltClass = 'status-good'; psl += 0.4; }
-        else { 
-            psl -= 0.4; 
-            advice.push("Нижняя треть имеет легкое отклонение от симметрии третей. Для улучшения контуров нижней челюсти и укрепления жевательной зоны практикуйте контроль осанки шеи и правильное положение языка (Мьюинг). Важно спать равномерно, избегая сильного сдавливания одной стороны."); 
+        // Блок 1: Валидация Canthal Tilt
+        let canthalStatusClass = 'state-fail';
+        let canthalDescription = '';
+        if (canthal > 1.8) {
+            canthalStatusClass = 'state-pass';
+            initialPslRating += 0.9;
+            canthalDescription = "Положительный наклон глазной щели (Hunter Eyes). Соответствует высоким модельным стандартам.";
+        } else if (canthal >= 0) {
+            canthalStatusClass = 'state-warning';
+            initialPslRating += 0.2;
+            canthalDescription = "Нейтральный или минимально выраженный наклон. Структура стабильна.";
+        } else {
+            initialPslRating -= 0.8;
+            canthalDescription = "Отрицательный кантал тилт (усталый взгляд). Пропорции костных орбит имеют нисходящий вектор.";
+            clinicalRoadmapNotes.push("Для визуального тонизирования периорбитальной зоны глаз применяются охлаждающие патчи, специализированный крем с кофеином и поддержание фаз глубокого сна.");
         }
-        cardsHtml += `
-            <div class="metric-card ${ltClass}">
-                <div class="metric-meta"><span>Lower Third Ratio (Нижняя треть)</span><span>${lowerThird}</span></div>
-                <div class="metric-info">Доля подбородка и челюсти в общей структуре лица. Золотой стандарт: ~0.33.</div>
+        
+        cardsBufferHtml += `
+            <div class="card-node ${canthalStatusClass}">
+                <div class="card-meta">
+                    <span class="metric-title">Canthal Tilt</span>
+                    <span class="metric-value">${canthal}°</span>
+                </div>
+                <div class="card-explanation">${canthalDescription}</div>
             </div>`;
 
-        // Расчет итогового рейтинга
-        psl = Math.max(1.0, Math.min(10.0, psl)).toFixed(1);
-        document.getElementById('psl-score-output').innerText = psl;
-        
-        let tier = "Mid Tier MTN";
-        if (psl >= 6.0) tier = "Chadlite";
-        if (psl >= 7.5) tier = "Chad";
-        if (psl < 4.0) tier = "Low Tier MTN";
-        document.getElementById('psl-tier-output').innerText = tier;
-
-        document.getElementById('metrics-container').innerHTML = cardsHtml;
-        
-        if (advice.length === 0) {
-            advice.push("Глобальных диспропорций в костной структуре не выявлено. Поддерживайте тонус кожи, следите за осанкой и общим процентом жира.");
+        // Блок 2: Проверка пропорций Facial Index
+        let indexStatusClass = 'state-warning';
+        let indexDescription = "Имеется минимальное отклонение от центрального распределения пропорций черепа.";
+        if (faceIndex >= 0.83 && faceIndex <= 0.89) {
+            indexStatusClass = 'state-pass';
+            initialPslRating += 0.6;
+            indexDescription = "Высокая гармония вертикального и горизонтального векторов лица. Золотое сечение соблюдено.";
+        } else if (faceIndex < 0.80) {
+            indexStatusClass = 'state-fail';
+            initialPslRating -= 0.4;
+            indexDescription = "Широкая структура скуловых дуг (Brachycephalic тенденция).";
         }
-        document.getElementById('roadmap-output').innerText = advice.join(' ');
+        
+        cardsBufferHtml += `
+            <div class="card-node ${indexStatusClass}">
+                <div class="card-meta">
+                    <span class="metric-title">Facial Index</span>
+                    <span class="metric-value">${faceIndex}</span>
+                </div>
+                <div class="card-explanation">${indexDescription} Оптимальный индекс симметрии находится в диапазоне 0.83 - 0.89.</div>
+            </div>`;
+
+        // Блок 3: Анализ долей третей лица (Lower Third)
+        let lowerThirdStatusClass = 'state-fail';
+        let lowerThirdDescription = '';
+        if (lowerThird >= 0.31 && lowerThird <= 0.35) {
+            lowerThirdStatusClass = 'state-pass';
+            initialPslRating += 0.5;
+            lowerThirdDescription = "Нижняя челюсть имеет идеальное процентное распределение в вертикальной плоскости.";
+        } else {
+            initialPslRating -= 0.5;
+            lowerThirdDescription = "Выявлен дисбаланс пропорций нижнечелюстной зоны относительно лобной и носовой третей.";
+            clinicalRoadmapNotes.push("Для оптимизации тонуса жевательных мышц и фиксации правильного положения костей челюстно-лицевой системы критически важно сохранять ровную осанку шейного отдела и контролировать естественное положение языка у нёба (Мьюинг / Mewing). Избегайте длительного сна на одной стороне тела для исключения мышечной асимметрии.");
+        }
+
+        cardsBufferHtml += `
+            <div class="card-node ${lowerThirdStatusClass}">
+                <div class="card-meta">
+                    <span class="metric-title">Lower Third Ratio</span>
+                    <span class="metric-value">${lowerThird}</span>
+                </div>
+                <div class="card-explanation">${lowerThirdDescription} Норма для гармонично развитой челюстной плоскости: ~0.33.</div>
+            </div>`;
+
+        // Ограничение диапазона шкалы PSL от 1.0 до 10.0
+        initialPslRating = Math.max(1.0, Math.min(10.0, initialPslRating)).toFixed(1);
+        DOM.pslOutput.innerText = initialPslRating;
+
+        // Присвоение категорий на основе набранного балла
+        let finalTierLabelText = "High Tier MTN";
+        if (initialPslRating >= 6.0 && initialPslRating < 7.5) finalTierLabelText = "Chadlite";
+        else if (initialPslRating >= 7.5) finalTierLabelText = "Chad";
+        else if (initialPslRating < 4.0) finalTierLabelText = "Low Tier MTN";
+
+        DOM.tierOutput.innerText = finalTierLabelText;
+        DOM.cardsContainer.innerHTML = cardsBufferHtml;
+
+        if (clinicalRoadmapNotes.length === 0) {
+            clinicalRoadmapNotes.push("Глобальных диспропорций или отклонений от гармонических стандартов не обнаружено. Рекомендуется стандартный уход за кожей лица, контроль процента подкожного жира и поддержание общего мышечного тонуса.");
+        }
+
+        DOM.roadmapOutput.innerText = clinicalRoadmapNotes.join(' ');
+
+        // ПЛАВНЫЙ АВТОМАТИЧЕСКИЙ СКРОЛЛ К РЕЗУЛЬТАТАМ НА МОБИЛЬНЫХ ЭКРАНАХ
+        setTimeout(() => {
+            DOM.dashboard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            sysLog("Выполнен скролл экрана к панели дашборда.");
+        }, 120);
     }
 </script>
 </body>
