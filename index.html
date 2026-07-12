@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ULTIMATE FACIAL ENGINE v2.0</title>
+    <title>ULTIMATE FACIAL ENGINE v2.1</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.js" crossorigin="anonymous"></script>
     
@@ -17,13 +17,11 @@
             --cyan-glow: rgba(0, 240, 255, 0.25);
             --text-main: #f1f5f9;
             --text-muted: #4a5568;
-            --text-dark: #2d3748;
             --green: #10b981;
             --red: #f43f5e;
             --amber: #f59e0b;
         }
 
-        /* Общие сбросы и оптимизация под мобильные экраны */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -78,7 +76,6 @@
             letter-spacing: 1px;
         }
 
-        /* ЭКРАН ЗАГРУЗКИ И ПУЛЬСИРУЮЩИЕ ТОЧКИ */
         #loading-view {
             display: flex;
             flex-direction: column;
@@ -121,14 +118,12 @@
             40% { opacity: 1; transform: scale(1.3); filter: brightness(1); }
         }
 
-        /* ГЛАВНЫЙ ИНТЕРФЕЙС РАБОЧЕЙ ЗОНЫ */
         #core-application {
             display: none;
             opacity: 0;
             transition: opacity 0.4s ease;
         }
 
-        /* Контейнер предпросмотра: Гарантирует, что фото никогда не вылезет наружу */
         .viewport-container {
             position: relative;
             width: 100%;
@@ -143,7 +138,6 @@
             justify-content: center;
         }
 
-        /* Изображение подстраивается под пропорции рамки, не ломая верстку */
         #target-image-render {
             max-width: 100%;
             max-height: 100%;
@@ -172,7 +166,6 @@
             pointer-events: none;
         }
 
-        /* Кнопки управления */
         .trigger-group {
             position: relative;
             margin-bottom: 15px;
@@ -216,7 +209,6 @@
             padding: 0 5px;
         }
 
-        /* ДАШБОРД РЕЗУЛЬТАТОВ АНАЛИЗА */
         #analysis-dashboard {
             display: none;
             margin-top: 15px;
@@ -279,13 +271,8 @@
             margin-bottom: 6px;
         }
 
-        .card-node .card-meta .metric-title {
-            color: var(--text-main);
-        }
-
-        .card-node .card-meta .metric-value {
-            color: var(--cyan);
-        }
+        .card-node .card-meta .metric-title { color: var(--text-main); }
+        .card-node .card-meta .metric-value { color: var(--cyan); }
 
         .card-node .card-explanation {
             font-size: 0.75rem;
@@ -315,7 +302,6 @@
             line-height: 1.6;
         }
 
-        /* Вспомогательный дебаг-логгер для выявления внештатных ситуаций на смартфонах */
         .system-hardware-logs {
             margin-top: 25px;
             background-color: #020204;
@@ -341,7 +327,7 @@
 <div class="app-wrapper">
     <header>
         <h1>Facial Analysis</h1>
-        <div class="version-tag">Enterprise Client-Side Core v2.0</div>
+        <div class="version-tag">Enterprise Client-Side Core v2.1</div>
     </header>
 
     <div id="loading-view">
@@ -373,8 +359,7 @@
                 <div class="tier-string" id="ui-tier-output">Калибровка</div>
             </div>
 
-            <div class="metric-cards-grid" id="ui-cards-container">
-                </div>
+            <div class="metric-cards-grid" id="ui-cards-container"></div>
 
             <div class="roadmap-wrapper">
                 <div class="roadmap-title-text">Программа коррекции костных структур:</div>
@@ -389,12 +374,6 @@
 </div>
 
 <script>
-    /**
-     * МОНОЛИТНОЕ АРХИТЕКТУРНОЕ ЯДРО ВЫЧИСЛЕНИЙ ДЛЯ СМАРТФОНОВ
-     * Архитектура: Модульная, с изоляцией контекстов выполнения и перехватом исключений (Try/Catch).
-     */
-
-    // Глобальный реестр контролируемых DOM-нод
     const DOM = {
         loadingView: document.getElementById('loading-view'),
         loadingText: document.getElementById('loading-text-node'),
@@ -420,7 +399,6 @@
         activeImage: null
     };
 
-    // Утилита безопасного логирования во внутреннюю системную консоль на экране
     function sysLog(message, isError = false) {
         const p = document.createElement('p');
         p.style.color = isError ? 'var(--red)' : '#4a5568';
@@ -429,11 +407,9 @@
         DOM.sysLogger.scrollTop = DOM.sysLogger.scrollHeight;
     }
 
-    // Первичная безопасная сборка нейросетевых моделей face-api
     async function initializeNeuralEngine() {
         sysLog("Запуск процедуры сборки нейросети...");
         try {
-            // Использование проверенного глобального зеркала весов моделей face-api
             const CENTRAL_MODEL_MIRROR = 'https://justadudewhohacks.github.io/face-api.js/models/';
             
             DOM.loadingText.innerText = "[1/2] Сканирование слоев архитектуры MobileNetV1...";
@@ -441,52 +417,41 @@
             sysLog("Слой нейросети SSD MobileNetV1 успешно развернут в ОЗУ.");
 
             DOM.loadingText.innerText = "[2/2] Привязка 68-точечной тригонометрической матрицы...";
-            await faceapi.nets.faceLandmark68Net.loadFromUri(central_model_mirror = CENTRAL_MODEL_MIRROR);
+            await faceapi.nets.faceLandmark68Net.loadFromUri(CENTRAL_MODEL_MIRROR);
             sysLog("Матрица контуров faceLandmark68Net успешно инициализирована.");
 
-            // Плавный переход интерфейса
             DOM.loadingView.style.display = 'none';
             DOM.appContainer.style.display = 'block';
-            setTimeout(() => {
-                DOM.appContainer.style.opacity = '1';
-            }, 50);
+            setTimeout(() => { DOM.appContainer.style.opacity = '1'; }, 50);
 
             CONTEXT.engineReady = true;
             sysLog("Ядро системы находится в режиме готовности.");
         } catch (fatalException) {
             sysLog(`Критическая ошибка инициализации моделей: ${fatalException.message}`, true);
-            DOM.loadingText.innerHTML = `<span style="color:var(--error)">Сбой загрузки ядра ИИ. Проверьте стабильность интернет-соединения или смените мобильный браузер.</span>`;
+            DOM.loadingText.innerHTML = `<span style="color:var(--error)">Сбой загрузки ядра ИИ.</span>`;
         }
     }
 
-    // Слушатель загрузки окна
     window.addEventListener('load', () => {
         initializeNeuralEngine().catch(e => sysLog(`Глобальное исключение загрузки: ${e.message}`, true));
     });
 
-    // Обработчик события выбора файла через мобильную систему хранения данных
     DOM.fileInput.addEventListener('change', async (event) => {
         sysLog("Получено новое событие выбора файла.");
         try {
             const uploadedFile = event.target.files[0];
-            if (!uploadedFile) {
-                sysLog("Выбор файла отменен пользователем или файловый дескриптор пуст.");
-                return;
-            }
+            if (!uploadedFile) return;
 
             if (!uploadedFile.type.startsWith('image/')) {
                 DOM.statusMsg.innerHTML = `<span style="color:var(--error)">Выбранный файл не является валидным изображением.</span>`;
-                sysLog("Ошибка валидации MIME-типа файла.", true);
                 return;
             }
 
             DOM.statusMsg.innerText = "Идет декодирование графического контента...";
             DOM.dashboard.style.display = 'none';
             
-            // Предотвращение утечки памяти: очистка старых URL ресурсов
             if (CONTEXT.activeImage) {
                 URL.revokeObjectURL(CONTEXT.activeImage);
-                sysLog("Предыдущий файловый буфер успешно выгружен из памяти.");
             }
 
             const objectUrl = URL.createObjectURL(uploadedFile);
@@ -494,9 +459,6 @@
 
             const tempImageNode = new Image();
             tempImageNode.onload = function () {
-                sysLog(`Изображение успешно декодировано. Нативное разрешение: ${tempImageNode.naturalWidth}x${tempImageNode.naturalHeight}`);
-                
-                // Передача источника в DOM элемент рендеринга
                 DOM.imageElement.src = objectUrl;
                 DOM.imageElement.style.display = 'block';
                 DOM.fallbackText.style.display = 'none';
@@ -504,29 +466,19 @@
                 CONTEXT.imageLoaded = true;
                 DOM.statusMsg.innerText = "Запуск процесса пространственного анализа...";
                 
-                // Даем браузеру смартфона обновить UI перед тяжелым расчетом
                 setTimeout(() => {
                     executeFacialAnalysis(tempImageNode).catch(err => {
                         sysLog(`Исключение внутри конвейера обработки: ${err.message}`, true);
-                        DOM.statusMsg.innerHTML = `<span style="color:var(--error)">Внутренний сбой анализа. Попробуйте другое фото.</span>`;
+                        DOM.statusMsg.innerHTML = `<span style="color:var(--error)">Внутренний сбой анализа.</span>`;
                     });
                 }, 100);
             };
-
-            tempImageNode.onerror = function () {
-                sysLog("Ошибка при парсинге структуры графического файла.", true);
-                DOM.statusMsg.innerHTML = `<span style="color:var(--error)">Не удалось прочитать изображение. Возможно, файл поврежден.</span>`;
-            };
-
             tempImageNode.src = objectUrl;
-
-        } catch (globalInputException) {
-            sysLog(`Критическая ошибка файлового потока: ${globalInputException.message}`, true);
-            DOM.statusMsg.innerHTML = `<span style="color:var(--error)">Системная ошибка ввода-вывода.</span>`;
+        } catch (e) {
+            sysLog(`Критическая ошибка файлового потока: ${e.message}`, true);
         }
     });
 
-    // Функция синхронизации геометрии оверлейного Canvas с реальными экранными размерами отмасштабированного изображения
     function synchronizeCanvasBounds() {
         const renderedWidth = DOM.imageElement.clientWidth;
         const renderedHeight = DOM.imageElement.clientHeight;
@@ -537,64 +489,44 @@
         DOM.canvas.height = renderedHeight;
         DOM.canvas.style.left = `${offsetLeft}px`;
         DOM.canvas.style.top = `${offsetTop}px`;
-        
-        sysLog(`Canvas синхронизирован: ${renderedWidth}x${renderedHeight} | Смещения: L:${offsetLeft} T:${offsetTop}`);
     }
 
-    // Слушатель динамического изменения экрана (поворот экрана смартфона)
     const viewportResizeObserver = new ResizeObserver(() => {
-        if (CONTEXT.imageLoaded) {
-            synchronizeCanvasBounds();
-        }
+        if (CONTEXT.imageLoaded) synchronizeCanvasBounds();
     });
     viewportResizeObserver.observe(DOM.viewport);
 
-    // ОСНОВНОЙ КОНВЕЙЕР ТРИГОНОМЕТРИЧЕСКОГО И НЕЙРОСЕТЕВОГО АНАЛИЗА ЛИЦА
     async function executeFacialAnalysis(sourceImageFrame) {
-        if (!CONTEXT.engineReady) {
-            sysLog("Попытка вызова конвейера до инициализации весов нейросети.", true);
-            return;
-        }
+        if (!CONTEXT.engineReady) return;
 
         sysLog("Вызов детектора лиц SSD Mobilenet...");
-        // Поиск лица с максимальным порогом точности детекции
         const singleFaceDetectionResult = await faceapi.detectSingleFace(
             sourceImageFrame, 
             new faceapi.SsdMobilenetv1Options({ minConfidence: 0.40 })
         ).withFaceLandmarks();
 
         if (!singleFaceDetectionResult) {
-            sysLog("Детектор вернул пустой результат. Лицо на изображении не дифференцировано.", true);
-            DOM.statusMsg.innerHTML = `<span style="color:var(--error)">Лицо не найдено. Снимите головные уборы и смотрите прямо в камеру.</span>`;
+            sysLog("Детектор вернул пустой результат.", true);
+            DOM.statusMsg.innerHTML = `<span style="color:var(--error)">Лицо не найдено. Смотрите прямо в камеру.</span>`;
             CONTEXT.ctx.clearRect(0, 0, DOM.canvas.width, DOM.canvas.height);
             return;
         }
 
         sysLog("Лицо успешно зафиксировано. Старт математической калибровки...");
-        
-        // Синхронизируем размеры перед отрисовкой
         synchronizeCanvasBounds();
 
+        // ИСПРАВЛЕНО: Метод изменен на единственный вариант getPositions() в массиве
         const rawLandmarkPositions = singleFaceDetectionResult.landmarks.getPositions();
         
-        // Масштабные коэффициенты перевода исходных пикселей картинки в пиксели текущего экрана смартфона
         const scaleFactorX = DOM.canvas.width / sourceImageFrame.naturalWidth;
         const scaleFactorY = DOM.canvas.height / sourceImageFrame.naturalHeight;
 
-        // Безопасное извлечение точек с масштабированием "на лету" для защиты от выхода за рамки холста
         function getSafePoint(pointIndex) {
             const targetNode = rawLandmarkPositions[pointIndex];
-            if (!targetNode) {
-                sysLog(`Внимание: Индекс точки ${pointIndex} отсутствует в матрице. Применен защитный сброс.`, true);
-                return { x: DOM.canvas.width / 2, y: DOM.canvas.height / 2 };
-            }
-            return {
-                x: targetNode.x * scaleFactorX,
-                y: targetNode.y * scaleFactorY
-            };
+            if (!targetNode) return { x: DOM.canvas.width / 2, y: DOM.canvas.height / 2 };
+            return { x: targetNode.x * scaleFactorX, y: targetNode.y * scaleFactorY };
         }
 
-        // ПАРСИНГ АНАТОМИЧЕСКИХ ОРИЕНТИРОВ (ПО 68-ТОЧЕЧНОЙ СХЕМЕ)
         const landmarks = {
             leftOuterEye: getSafePoint(36),
             leftInnerEye: getSafePoint(39),
@@ -610,15 +542,12 @@
             leftPupilBottom: getSafePoint(41)
         };
 
-        // Очистка слоя рисования перед выводом линий
         CONTEXT.ctx.clearRect(0, 0, DOM.canvas.width, DOM.canvas.height);
 
-        // МАТЕМАТИЧЕСКИЕ ВЫЧИСЛЕНИЯ МЕТРИК С ЗАЩИТОЙ ОТ МЕДИЦИНСКИХ АНОМАЛИЙ (NaN)
-        
-        // 1. Вычисление Canthal Tilt (Наклон глазной щели)
+        // Расчет Canthal Tilt
         let leftTiltDeltaX = landmarks.leftOuterEye.x - landmarks.leftInnerEye.x;
         let leftTiltDeltaY = landmarks.leftOuterEye.y - landmarks.leftInnerEye.y;
-        if (Math.abs(leftTiltDeltaX) < 0.001) leftTiltDeltaX = 1.0; // Защита от деления на ноль
+        if (Math.abs(leftTiltDeltaX) < 0.001) leftTiltDeltaX = 1.0;
         const leftCanthalAngle = -Math.atan2(leftTiltDeltaY, leftTiltDeltaX) * (180 / Math.PI);
 
         let rightTiltDeltaX = landmarks.rightOuterEye.x - landmarks.rightInnerEye.x;
@@ -629,30 +558,23 @@
         let finalComputedCanthalTilt = parseFloat(((leftCanthalAngle + rightCanthalAngle) / 2).toFixed(1));
         if (Number.isNaN(finalComputedCanthalTilt)) finalComputedCanthalTilt = 0.0;
 
-        // 2. Вычисление Facial Index (Индекс пропорции высоты и ширины структуры)
+        // Расчет Facial Index
         const verticalFaceHeightPx = Math.hypot(landmarks.chinBase.x - landmarks.nasionRoot.x, landmarks.chinBase.y - landmarks.nasionRoot.y);
         let horizontalZygomaticWidthPx = Math.hypot(landmarks.rightJawCorner.x - landmarks.leftJawCorner.x, landmarks.rightJawCorner.y - landmarks.leftJawCorner.y);
         if (horizontalZygomaticWidthPx < 1) horizontalZygomaticWidthPx = 1.0;
-        
         let finalComputedFacialIndex = parseFloat((verticalFaceHeightPx / horizontalZygomaticWidthPx).toFixed(2));
-        if (Number.isNaN(finalComputedFacialIndex)) finalComputedFacialIndex = 0.86;
 
-        // 3. Вычисление соотношения нижней трети лица (Lower Third Ratio)
+        // Расчет Lower Third
         const lowerThirdHeightPx = Math.hypot(landmarks.chinBase.x - landmarks.subnasaleNode.x, landmarks.chinBase.y - landmarks.subnasaleNode.y);
         let finalComputedLowerThirdRatio = parseFloat((lowerThirdHeightPx / verticalFaceHeightPx).toFixed(2));
-        if (Number.isNaN(finalComputedLowerThirdRatio)) finalComputedLowerThirdRatio = 0.33;
 
-        // 4. Определение Eye-to-Brow Distance (Дистанция от зрачка до брови)
         const meanPupilCenterY = (landmarks.leftPupilTop.y + landmarks.leftPupilBottom.y) / 2;
         const eyeToBrowAbsoluteDistance = parseFloat(Math.abs(meanPupilCenterY - landmarks.leftEyebrowInternal.y).toFixed(1));
 
-        sysLog(`Метрики рассчитаны: Кантал=${finalComputedCanthalTilt}, Индекс=${finalComputedFacialIndex}, НижняяТреть=${finalComputedLowerThirdRatio}`);
-
-        // СЛОЙ ОТРИСОВКИ МАРКЕРОВ НА CANVAS
+        // Отрисовка геометрии
         const dynamicGraphicsThickness = Math.max(3, DOM.canvas.width / 120);
         CONTEXT.ctx.lineWidth = dynamicGraphicsThickness;
         
-        // Линии глазной оси (Зеленые, если наклон положительный, Красные, если отрицательный)
         CONTEXT.ctx.strokeStyle = finalComputedCanthalTilt >= 0.5 ? '#10b981' : '#f43f5e';
         CONTEXT.ctx.beginPath();
         CONTEXT.ctx.moveTo(landmarks.leftInnerEye.x, landmarks.leftInnerEye.y);
@@ -661,7 +583,6 @@
         CONTEXT.ctx.lineTo(landmarks.rightOuterEye.x, landmarks.rightOuterEye.y);
         CONTEXT.ctx.stroke();
 
-        // Вертикальный вектор симметрии черепной коробки
         CONTEXT.ctx.strokeStyle = '#00f0ff';
         CONTEXT.ctx.lineWidth = Math.max(1, dynamicGraphicsThickness / 1.5);
         CONTEXT.ctx.beginPath();
@@ -669,109 +590,64 @@
         CONTEXT.ctx.lineTo(landmarks.chinBase.x, landmarks.chinBase.y);
         CONTEXT.ctx.stroke();
 
-        // Отрисовка круглых неоновых узлов поверх точек фиксации
         CONTEXT.ctx.fillStyle = '#00f0ff';
-        const activePointsArray = [
-            landmarks.leftOuterEye, landmarks.leftInnerEye, 
-            landmarks.rightInnerEye, landmarks.rightOuterEye, 
-            landmarks.chinBase, landmarks.nasionRoot
-        ];
-        
-        activePointsArray.forEach(pointNode => {
+        [landmarks.leftOuterEye, landmarks.leftInnerEye, landmarks.rightInnerEye, landmarks.rightOuterEye, landmarks.chinBase, landmarks.nasionRoot].forEach(pointNode => {
             CONTEXT.ctx.beginPath();
             CONTEXT.ctx.arc(pointNode.x, pointNode.y, Math.max(4, DOM.canvas.width / 75), 0, 2 * Math.PI);
             CONTEXT.ctx.fill();
         });
 
-        DOM.statusMsg.innerText = "Матричный анализ завершен. Результаты сформированы.";
-        
-        // Передача рассчитанных данных на экран результатов
+        DOM.statusMsg.innerText = "Матричный анализ завершел.";
         compileAndRenderDashboard(finalComputedCanthalTilt, finalComputedFacialIndex, finalComputedLowerThirdRatio, eyeToBrowAbsoluteDistance);
     }
 
-    // РЕНДЕРИНГ И ТИПИЗАЦИЯ СИСТЕМЫ ОЦЕНОК ПО СТАНДАРТУ ШКАЛЫ ГАУССА
     function compileAndRenderDashboard(canthal, faceIndex, lowerThird, browDistance) {
         DOM.dashboard.style.display = 'block';
-        
-        let initialPslRating = 5.0; // Среднестатистическое значение популяции
+        let initialPslRating = 5.0;
         let cardsBufferHtml = '';
         let clinicalRoadmapNotes = [];
 
-        // Блок 1: Валидация Canthal Tilt
         let canthalStatusClass = 'state-fail';
         let canthalDescription = '';
         if (canthal > 1.8) {
-            canthalStatusClass = 'state-pass';
-            initialPslRating += 0.9;
-            canthalDescription = "Положительный наклон глазной щели (Hunter Eyes). Соответствует высоким модельным стандартам.";
+            canthalStatusClass = 'state-pass'; initialPslRating += 0.9;
+            canthalDescription = "Положительный наклон глазной щели (Hunter Eyes). Высокий модельный стандарт.";
         } else if (canthal >= 0) {
-            canthalStatusClass = 'state-warning';
-            initialPslRating += 0.2;
-            canthalDescription = "Нейтральный или минимально выраженный наклон. Структура стабильна.";
+            canthalStatusClass = 'state-warning'; initialPslRating += 0.2;
+            canthalDescription = "Нейтральный наклон. Структура стабильна.";
         } else {
             initialPslRating -= 0.8;
-            canthalDescription = "Отрицательный кантал тилт (усталый взгляд). Пропорции костных орбит имеют нисходящий вектор.";
-            clinicalRoadmapNotes.push("Для визуального тонизирования периорбитальной зоны глаз применяются охлаждающие патчи, специализированный крем с кофеином и поддержание фаз глубокого сна.");
+            canthalDescription = "Отрицательный кантал тилт. Пропорции костных орбит имеют нисходящий вектор.";
+            clinicalRoadmapNotes.push("Для визуального тонизирования периорбитальной зоны применяются охлаждающие патчи и качественный сон.");
         }
         
-        cardsBufferHtml += `
-            <div class="card-node ${canthalStatusClass}">
-                <div class="card-meta">
-                    <span class="metric-title">Canthal Tilt</span>
-                    <span class="metric-value">${canthal}°</span>
-                </div>
-                <div class="card-explanation">${canthalDescription}</div>
-            </div>`;
+        cardsBufferHtml += `<div class="card-node ${canthalStatusClass}"><div class="card-meta"><span class="metric-title">Canthal Tilt</span><span class="metric-value">${canthal}°</span></div><div class="card-explanation">${canthalDescription}</div></div>`;
 
-        // Блок 2: Проверка пропорций Facial Index
         let indexStatusClass = 'state-warning';
         let indexDescription = "Имеется минимальное отклонение от центрального распределения пропорций черепа.";
         if (faceIndex >= 0.83 && faceIndex <= 0.89) {
-            indexStatusClass = 'state-pass';
-            initialPslRating += 0.6;
-            indexDescription = "Высокая гармония вертикального и горизонтального векторов лица. Золотое сечение соблюдено.";
-        } else if (faceIndex < 0.80) {
-            indexStatusClass = 'state-fail';
-            initialPslRating -= 0.4;
-            indexDescription = "Широкая структура скуловых дуг (Brachycephalic тенденция).";
+            indexStatusClass = 'state-pass'; initialPslRating += 0.6;
+            indexDescription = "Высокая гармония вертикального и горизонтального векторов лица.";
         }
         
-        cardsBufferHtml += `
-            <div class="card-node ${indexStatusClass}">
-                <div class="card-meta">
-                    <span class="metric-title">Facial Index</span>
-                    <span class="metric-value">${faceIndex}</span>
-                </div>
-                <div class="card-explanation">${indexDescription} Оптимальный индекс симметрии находится в диапазоне 0.83 - 0.89.</div>
-            </div>`;
+        cardsBufferHtml += `<div class="card-node ${indexStatusClass}"><div class="card-meta"><span class="metric-title">Facial Index</span><span class="metric-value">${faceIndex}</span></div><div class="card-explanation">${indexDescription} Норма: 0.83 - 0.89.</div></div>`;
 
-        // Блок 3: Анализ долей третей лица (Lower Third)
         let lowerThirdStatusClass = 'state-fail';
         let lowerThirdDescription = '';
         if (lowerThird >= 0.31 && lowerThird <= 0.35) {
-            lowerThirdStatusClass = 'state-pass';
-            initialPslRating += 0.5;
+            lowerThirdStatusClass = 'state-pass'; initialPslRating += 0.5;
             lowerThirdDescription = "Нижняя челюсть имеет идеальное процентное распределение в вертикальной плоскости.";
         } else {
             initialPslRating -= 0.5;
-            lowerThirdDescription = "Выявлен дисбаланс пропорций нижнечелюстной зоны относительно лобной и носовой третей.";
-            clinicalRoadmapNotes.push("Для оптимизации тонуса жевательных мышц и фиксации правильного положения костей челюстно-лицевой системы критически важно сохранять ровную осанку шейного отдела и контролировать естественное положение языка у нёба (Мьюинг / Mewing). Избегайте длительного сна на одной стороне тела для исключения мышечной асимметрии.");
+            lowerThirdDescription = "Выявлен дисбаланс пропорций нижнечелюстной зоны.";
+            clinicalRoadmapNotes.push("Для оптимизации тонуса жевательных мышц и фиксации правильного положения челюстно-лицевой системы сохраняйте ровную осанку шейного отдела и контролируйте естественное положение языка у нёба (Мьюинг / Mewing).");
         }
 
-        cardsBufferHtml += `
-            <div class="card-node ${lowerThirdStatusClass}">
-                <div class="card-meta">
-                    <span class="metric-title">Lower Third Ratio</span>
-                    <span class="metric-value">${lowerThird}</span>
-                </div>
-                <div class="card-explanation">${lowerThirdDescription} Норма для гармонично развитой челюстной плоскости: ~0.33.</div>
-            </div>`;
+        cardsBufferHtml += `<div class="card-node ${lowerThirdStatusClass}"><div class="card-meta"><span class="metric-title">Lower Third Ratio</span><span class="metric-value">${lowerThird}</span></div><div class="card-explanation">${lowerThirdDescription} Норма: ~0.33.</div></div>`;
 
-        // Ограничение диапазона шкалы PSL от 1.0 до 10.0
         initialPslRating = Math.max(1.0, Math.min(10.0, initialPslRating)).toFixed(1);
         DOM.pslOutput.innerText = initialPslRating;
 
-        // Присвоение категорий на основе набранного балла
         let finalTierLabelText = "High Tier MTN";
         if (initialPslRating >= 6.0 && initialPslRating < 7.5) finalTierLabelText = "Chadlite";
         else if (initialPslRating >= 7.5) finalTierLabelText = "Chad";
@@ -781,12 +657,10 @@
         DOM.cardsContainer.innerHTML = cardsBufferHtml;
 
         if (clinicalRoadmapNotes.length === 0) {
-            clinicalRoadmapNotes.push("Глобальных диспропорций или отклонений от гармонических стандартов не обнаружено. Рекомендуется стандартный уход за кожей лица, контроль процента подкожного жира и поддержание общего мышечного тонуса.");
+            clinicalRoadmapNotes.push("Глобальных диспропорций не обнаружено. Рекомендуется стандартный уход за кожей и поддержание общего тонуса.");
         }
-
         DOM.roadmapOutput.innerText = clinicalRoadmapNotes.join(' ');
 
-        // ПЛАВНЫЙ А ВТОМАТИЧЕСКИЙ СКРОЛЛ К РЕЗУЛЬТАТАМ НА МОБИЛЬНЫХ ЭКРАНАХ
         setTimeout(() => {
             DOM.dashboard.scrollIntoView({ behavior: 'smooth', block: 'start' });
             sysLog("Выполнен скролл экрана к панели дашборда.");
